@@ -25,6 +25,7 @@ func main() {
 	protected.Use(auth.AuthMiddleware)
 
 	protected.HandleFunc("/GUID", handlers.GetGUID).Methods("GET")
+	protected.HandleFunc("/logout", handlers.Logout).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

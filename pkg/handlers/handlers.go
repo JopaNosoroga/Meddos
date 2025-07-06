@@ -49,6 +49,13 @@ func Authorization(rw http.ResponseWriter, r *http.Request) {
 }
 
 func Refresh(rw http.ResponseWriter, r *http.Request) {
+	accessHeader := r.Header.Get("Authorization")
+
+	if accessHeader == "" {
+		http.Error(rw, "Authorization header не найден", http.StatusBadRequest)
+		return
+	}
+
 	refreshHeader := r.Header.Get("Refresh")
 
 	if refreshHeader == "" {
@@ -56,27 +63,39 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenParts := strings.Split(refreshHeader, " ")
-	if len(tokenParts) != 4 || tokenParts[0] != "Bearer" || tokenParts[2] != "Refresh" {
+	accessTokenParts := strings.Split(accessHeader, " ")
+	if len(accessTokenParts) != 2 || accessTokenParts[0] != "Bearer" {
 		http.Error(rw, "Токены в запросе не найдены", http.StatusBadRequest)
 		return
 	}
-	token := tokens{}
-	token.Access = tokenParts[1]
-	token.Refresh = tokenParts[3]
 
-	GUID, err := auth.CheckAccessToken(token.Access)
+	refreshTokenParts := strings.Split(refreshHeader, " ")
+	if len(refreshTokenParts) != 2 || refreshTokenParts[0] != "Refresh" {
+		http.Error(rw, "Токены в запросе не найдены", http.StatusBadRequest)
+		return
+	}
+
+	token := tokens{}
+	token.Access = accessTokenParts[1]
+	token.Refresh = refreshTokenParts[1]
+
+	GUID, _ := auth.CheckAccessToken(token.Access)
+
+	err := dbwork.DB.CheckActiveSession(GUID)
+	if err != nil {
+		log.Println(err)
+		http.Error(rw, "Сессия токенов закрыта", http.StatusUnauthorized)
+		return
+	}
+
+	userIPBefore, err := dbwork.DB.CheckWorkerRefreshAndStopping(token.Refresh, GUID, r.UserAgent())
 	if err != nil {
 		log.Println(err)
 		http.Error(rw, "Ошибка проверки токенов", http.StatusUnauthorized)
 		return
 	}
 
-	err = dbwork.DB.CheckWorkerRefreshAndStopping(token.Refresh, GUID, r.UserAgent())
-	if err != nil {
-		log.Println(err)
-		http.Error(rw, "Ошибка проверки токенов", http.StatusUnauthorized)
-		return
+	if userIPBefore != r.RemoteAddr {
 	}
 
 	token.Access, err = auth.CreateAccessToken(GUID)
@@ -101,10 +120,27 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 func GetGUID(rw http.ResponseWriter, r *http.Request) {
 	GUID, ok := r.Context().Value("GUID").(string)
 	if !ok {
-		http.Error(rw, "Вы не авторизованы", http.StatusUnauthorized)
+		http.Error(rw, "Ошибка", http.StatusUnauthorized)
 		return
 	}
 
 	body := fmt.Sprintf("Ваш GUID = %s", GUID)
 	fmt.Fprintf(rw, "%s", body)
+}
+
+func Logout(rw http.ResponseWriter, r *http.Request) {
+	GUID, ok := r.Context().Value("GUID").(string)
+	if !ok {
+		http.Error(rw, "Ошибка", http.StatusInternalServerError)
+		return
+	}
+
+	err := dbwork.DB.StopSession(GUID)
+	if err != nil {
+		log.Println(err)
+		http.Error(rw, "Попытка закрыть сессию провалилась", http.StatusInternalServerError)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
 }

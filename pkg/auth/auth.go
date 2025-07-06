@@ -32,6 +32,10 @@ func CreateAccessToken(GUID string) (string, error) {
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 
+	err := dbwork.DB.EnableSession(GUID)
+	if err != nil {
+		return "", err
+	}
 	return token.SignedString([]byte(secret))
 }
 
@@ -54,7 +58,8 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		tokenString := tokenParts[1]
 		GUID, err := CheckAccessToken(tokenString)
 		if err != nil {
-			http.Error(rw, err.Error(), http.StatusUnauthorized)
+			http.Error(rw, "Ошибка проверки токена", http.StatusUnauthorized)
+			return
 		}
 		ctx := context.WithValue(r.Context(), "GUID", GUID)
 		next.ServeHTTP(rw, r.WithContext(ctx))
@@ -72,7 +77,12 @@ func CheckAccessToken(access string) (string, error) {
 		},
 	)
 	if err != nil || !token.Valid {
-		return "", fmt.Errorf("Неверный access токен")
+		return "-1", fmt.Errorf("Неверный access токен")
+	}
+
+	err = dbwork.DB.CheckActiveSession(claim.GUID)
+	if err != nil {
+		return "-1", err
 	}
 
 	return claim.GUID, nil
@@ -98,7 +108,7 @@ func CreateRefreshToken(GUID, userAgent, userIP string) (string, error) {
 		if err == nil {
 			err = dbwork.DB.AddRefreshToDB(string(hashRefresh), GUID, userAgent, userIP)
 			if err != nil {
-				return "", nil
+				return "", err
 			}
 			return string(strRefresh), nil
 		}
