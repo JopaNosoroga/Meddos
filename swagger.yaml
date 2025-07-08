@@ -25,7 +25,8 @@ paths:
             description: |-
                 # Для получения собственного GUID необходимо ввыполнить GET запрос с заголовком Authorization
                 # Authorization: Bearer {access}
-
+                # Пример запроса:
+                # - curl -X GET -H "Authorization: Bearer {access}" http://localhost:8080/GUID
                 # При успехе сервер вернёт json с GUID
             operationId: GetGUID
             responses:
@@ -44,15 +45,10 @@ paths:
         post:
             description: |-
                 # Для авторизации необходимо сделать POST запрос с указание GUID в параметре запроса
+                # Пример запроса:
+                # - curl -X POST http://localhost:8080/auth/{GUID} вместо {GUID} ввести тестовый GUID
                 # При успехе сервер вернёт json с access и refresh токенами
             operationId: Authorization
-            responses:
-                "200":
-                    description: tokens
-                    schema:
-                        $ref: '#/definitions/tokens'
-                "500":
-                    description: ' Ошибка сервера'
             summary: Авторизация в системе Authorization()
             tags:
                 - tokens
@@ -61,7 +57,8 @@ paths:
             description: |-
                 # Для деавторизации необходимо выполнить POST запрос с заголовком Authorization
                 # Authorization: Bearer {access}
-
+                # Пример запроса:
+                # - curl -X POST -H "Authorization: Bearer {access}" http://localhost:8080/logout вместо {access} надо ввести полученный access токен
                 # При успехе сервер вернёт статус 200
             operationId: Logout
             responses:
@@ -80,20 +77,10 @@ paths:
                 # Для обновления токенов необходимо сделать POST запрос с указание двух заголовков
                 # Authorization: Bearer {access}
                 # Refresh: Refresh {refresh}
-
-                # При успехе сервер вернёт json с access и refresh токенами
+                # Пример запроса:
+                # - curl -X POST -H "Authorization: Bearer {access}" -H "Refresh: Refresh {refresh}" http://localhost:8080/refresh
+                # - вместо {access} и {refresh} надо ввести токена полученные в запросе к http://localhost:8080/auth/{GUID}
             operationId: Refresh
-            responses:
-                "200":
-                    description: tokens
-                    schema:
-                        $ref: '#/definitions/tokens'
-                "400":
-                    description: ' Ошибка в запросе'
-                "401":
-                    description: ' Ошибка авторизации'
-                "500":
-                    description: ' Ошибка сервера'
             summary: Обновление токенов access и refresh Refresh()
             tags:
                 - tokens

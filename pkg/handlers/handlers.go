@@ -38,8 +38,10 @@ func InitializationWebhook(url string) {
 // # Авторизация в системе Authorization()
 //
 // # Для авторизации необходимо сделать POST запрос с указание GUID в параметре запроса
+// # Пример запроса:
+// # - curl -X POST http://localhost:8080/auth/{GUID} вместо {GUID} ввести тестовый GUID
 // # При успехе сервер вернёт json с access и refresh токенами
-//
+
 // responses:
 //
 //	200: tokens
@@ -82,6 +84,10 @@ func Authorization(rw http.ResponseWriter, r *http.Request) {
 // # Для обновления токенов необходимо сделать POST запрос с указание двух заголовков
 // # Authorization: Bearer {access}
 // # Refresh: Refresh {refresh}
+// # Пример запроса:
+// # - curl -X POST -H "Authorization: Bearer {access}" -H "Refresh: Refresh {refresh}" http://localhost:8080/refresh
+// # - вместо {access} и {refresh} надо ввести токена полученные в запросе к http://localhost:8080/auth/{GUID}
+
 //
 // # При успехе сервер вернёт json с access и refresh токенами
 //
@@ -174,7 +180,8 @@ func Refresh(rw http.ResponseWriter, r *http.Request) {
 //
 // # Для получения собственного GUID необходимо ввыполнить GET запрос с заголовком Authorization
 // # Authorization: Bearer {access}
-//
+// # Пример запроса:
+// # - curl -X GET -H "Authorization: Bearer {access}" http://localhost:8080/GUID
 // # При успехе сервер вернёт json с GUID
 //
 // responses:
@@ -204,7 +211,8 @@ func GetGUID(rw http.ResponseWriter, r *http.Request) {
 //
 // # Для деавторизации необходимо выполнить POST запрос с заголовком Authorization
 // # Authorization: Bearer {access}
-//
+// # Пример запроса:
+// # - curl -X POST -H "Authorization: Bearer {access}" http://localhost:8080/logout вместо {access} надо ввести полученный access токен
 // # При успехе сервер вернёт статус 200
 //
 // responses:
