@@ -12,7 +12,7 @@
 
 ## Требования
 - Go 1.24+
-- PostgreSQL
+- PostgreSQL 15+
 - Конфигурационные файлы (DBconfig.json, AuthConfig.json)
 
 ## Запуск сервера

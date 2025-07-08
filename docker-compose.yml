@@ -17,7 +17,7 @@ services:
     networks:
       backend:
         aliases:
-          - database  # Добавленный алиас
+          - database
 
   app:
     build: .
@@ -30,9 +30,9 @@ services:
     networks:
       backend:
         aliases:
-          - application  # Добавленный алиас
+          - application 
 
 networks:
   backend:
-    name: meddos_backend  # Явное имя сети
+    name: meddos_backend
     driver: bridge
