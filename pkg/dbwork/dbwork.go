@@ -2,10 +2,8 @@ package dbwork
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -28,12 +26,13 @@ type PostgresDataBase struct {
 	db *sql.DB
 }
 
-type postgresDBParams struct {
+type PostgresDBParams struct {
 	DBName   string `json:"dbName"`
 	Host     string `json:"host"`
 	User     string `json:"user"`
 	Password string `json:"password"`
 	SslMode  string `json:"sslmode"`
+	Port     int    `json:"port"`
 }
 
 func (postgres *PostgresDataBase) CheckCollisionsRefresh(hashRefresh string) error {
@@ -232,25 +231,14 @@ func (postgres *PostgresDataBase) StopSession(GUID string) error {
 	return nil
 }
 
-func InitializationPostgresDB() error {
-	configFile, err := os.ReadFile("pkg/dbwork/config.json")
-	if err != nil {
-		return err
-	}
-
-	var config postgresDBParams
-
-	err = json.Unmarshal(configFile, &config)
-	if err != nil {
-		return err
-	}
-
+func InitializationPostgresDB(config PostgresDBParams) error {
 	connStr := fmt.Sprintf(
-		"host=%s dbname=%s user=%s password=%s sslmode=%s",
-		config.Host,
-		config.DBName,
+		"postgres://%v:%v@%v:%v/%v?sslmode=%s",
 		config.User,
 		config.Password,
+		config.Host,
+		config.Port,
+		config.DBName,
 		config.SslMode,
 	)
 

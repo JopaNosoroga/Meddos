@@ -1,0 +1,6 @@
+
+{
+  "jwt_secret": "Hochy_sir_kosichky:)",
+  "jwt_expiration_hours": 8,
+  "webhook": "https://webhook.site/8591037e-5ec8-494f-9168-1ea4cd8d35c9"
+}

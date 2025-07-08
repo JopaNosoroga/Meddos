@@ -1,0 +1,9 @@
+
+{
+	"host": "database",
+	"user": "postgres",
+	"password": "postgres",
+	"dbname": "meddos_test",
+	"sslmode": "disable",
+	"port": 5432
+}

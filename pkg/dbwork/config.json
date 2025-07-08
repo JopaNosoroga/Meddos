@@ -1,8 +1,0 @@
-
-{
-	"host": "localhost",
-	"user": "postgres",
-	"password": "postgres",
-	"dbname": "meddos",
-	"sslmode": "disable"
-}

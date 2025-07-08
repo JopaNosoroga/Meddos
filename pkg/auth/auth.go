@@ -14,7 +14,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var secret = []byte("Hochy_sir_kosichky:)")
+var (
+	jwtSecret string
+	expires   int
+)
+
+func InitializationSecretAndExpires(secret string, expiresHour int) {
+	expires = expiresHour
+	jwtSecret = secret
+}
 
 type claims struct {
 	GUID string `json:"GUID"`
@@ -25,7 +33,7 @@ func CreateAccessToken(GUID string) (string, error) {
 	claims := &claims{
 		GUID: GUID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(8 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(expires) * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
@@ -36,7 +44,7 @@ func CreateAccessToken(GUID string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return token.SignedString([]byte(secret))
+	return token.SignedString([]byte(jwtSecret))
 }
 
 func AuthMiddleware(next http.Handler) http.Handler {
@@ -73,16 +81,16 @@ func CheckAccessToken(access string) (string, error) {
 		access,
 		claim,
 		func(token *jwt.Token) (interface{}, error) {
-			return []byte(secret), nil
+			return []byte(jwtSecret), nil
 		},
 	)
 	if err != nil || !token.Valid {
-		return "-1", fmt.Errorf("Неверный access токен")
+		return claim.GUID, fmt.Errorf("Неверный access токен")
 	}
 
 	err = dbwork.DB.CheckActiveSession(claim.GUID)
 	if err != nil {
-		return "-1", err
+		return claim.GUID, err
 	}
 
 	return claim.GUID, nil

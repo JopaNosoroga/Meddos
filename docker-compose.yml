@@ -1,0 +1,38 @@
+
+services:
+  db:
+    image: postgres:15
+    container_name: meddos_container_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=meddos_test
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      backend:
+        aliases:
+          - database  # Добавленный алиас
+
+  app:
+    build: .
+    container_name: meddos_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      backend:
+        aliases:
+          - application  # Добавленный алиас
+
+networks:
+  backend:
+    name: meddos_backend  # Явное имя сети
+    driver: bridge

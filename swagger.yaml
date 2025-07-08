@@ -1,0 +1,100 @@
+definitions:
+    guid:
+        properties:
+            GUID:
+                description: Индентификатор пользователя
+                type: string
+        type: object
+        x-go-package: meddos/pkg/handlers
+    tokens:
+        description: структура хранящая в себе access и refresh токены
+        properties:
+            access:
+                description: Access token (JWT)
+                type: string
+                x-go-name: Access
+            refresh:
+                description: Refresh token
+                type: string
+                x-go-name: Refresh
+        type: object
+        x-go-package: meddos/pkg/handlers
+paths:
+    /GUID:
+        get:
+            description: |-
+                # Для получения собственного GUID необходимо ввыполнить GET запрос с заголовком Authorization
+                # Authorization: Bearer {access}
+
+                # При успехе сервер вернёт json с GUID
+            operationId: GetGUID
+            responses:
+                "200":
+                    description: guid
+                    schema:
+                        $ref: '#/definitions/guid'
+                "401":
+                    description: ' Ошибка авторизации'
+                "500":
+                    description: ' Ошибка сервера'
+            summary: Получение собственного GUID GetGUID()
+            tags:
+                - GetGUID
+    /auth/{GUID}:
+        post:
+            description: |-
+                # Для авторизации необходимо сделать POST запрос с указание GUID в параметре запроса
+                # При успехе сервер вернёт json с access и refresh токенами
+            operationId: Authorization
+            responses:
+                "200":
+                    description: tokens
+                    schema:
+                        $ref: '#/definitions/tokens'
+                "500":
+                    description: ' Ошибка сервера'
+            summary: Авторизация в системе Authorization()
+            tags:
+                - tokens
+    /logout:
+        post:
+            description: |-
+                # Для деавторизации необходимо выполнить POST запрос с заголовком Authorization
+                # Authorization: Bearer {access}
+
+                # При успехе сервер вернёт статус 200
+            operationId: Logout
+            responses:
+                "200":
+                    description: ' Пользователь успешно деавторизован'
+                "401":
+                    description: ' Ошибка авторизации'
+                "500":
+                    description: ' Ошибка сервера'
+            summary: Деавторизация Logout()
+            tags:
+                - tokens
+    /refresh:
+        post:
+            description: |-
+                # Для обновления токенов необходимо сделать POST запрос с указание двух заголовков
+                # Authorization: Bearer {access}
+                # Refresh: Refresh {refresh}
+
+                # При успехе сервер вернёт json с access и refresh токенами
+            operationId: Refresh
+            responses:
+                "200":
+                    description: tokens
+                    schema:
+                        $ref: '#/definitions/tokens'
+                "400":
+                    description: ' Ошибка в запросе'
+                "401":
+                    description: ' Ошибка авторизации'
+                "500":
+                    description: ' Ошибка сервера'
+            summary: Обновление токенов access и refresh Refresh()
+            tags:
+                - tokens
+swagger: "2.0"
