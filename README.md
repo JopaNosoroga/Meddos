@@ -15,6 +15,10 @@
 - PostgreSQL
 - Конфигурационные файлы (DBconfig.json, AuthConfig.json)
 
+## Запуск сервера
+- Стандартный запуск: docker-compose -f docker-compose.yml up -d
+- В папке configs находятся конфигурации подключения к базе данных, если хотите изменить базу данных
+
 ## Примеры запросов к серверу
 - curl -X POST http://localhost:8080/auth/{GUID} вместо {GUID} ввести тестовый GUID
 - Ответы: http.Error() или json в случае успеха с access и refresh токенами
